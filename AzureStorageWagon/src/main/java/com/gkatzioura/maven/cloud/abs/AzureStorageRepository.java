@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.microsoft.azure.storage.StorageCredentials;
+import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.apache.maven.wagon.TransferFailedException;
@@ -68,9 +70,26 @@ public class AzureStorageRepository {
             CloudStorageAccount cloudStorageAccount = CloudStorageAccount.parse(connectionString);
             blobContainer = cloudStorageAccount.createCloudBlobClient().getContainerReference(container);
             blobContainer.getMetadata();
+
         } catch (URISyntaxException |InvalidKeyException |StorageException e) {
             throw new AuthenticationException("Provide valid credentials");
         }
+    }
+
+    // Call after connect
+    public String getConnectionString() {
+        if (blobContainer == null) {
+            throw new IllegalStateException("Call getConnectionString after a call to connect");
+        }
+
+        String blobUrl = blobContainer.getUri().toASCIIString();
+        final StorageCredentials credentials = blobContainer.getServiceClient().getCredentials();
+        if (credentials instanceof StorageCredentialsSharedAccessSignature) {
+            blobUrl += "?" + ((StorageCredentialsSharedAccessSignature)credentials).getToken();
+        }
+        LOGGER.debug("Blob Storage URL: {}", blobUrl);
+
+        return blobUrl;
     }
 
     public void copy(String resourceName, File destination, TransferProgress transferProgress) throws ResourceDoesNotExistException {

@@ -18,6 +18,7 @@ package com.gkatzioura.maven.cloud.abs;
 
 import java.io.File;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.maven.wagon.ConnectionException;
 import org.apache.maven.wagon.ResourceDoesNotExistException;
@@ -143,7 +144,12 @@ public class AzureStorageWagon extends AbstractStorageWagon {
             LOGGER.debug("Opening connection for account {} and container {}",account,container);
 
             azureStorageRepository = new AzureStorageRepository(account,container);
+
             azureStorageRepository.connect(authenticationInfo);
+//            final Properties properties = new Properties();
+//            properties.setProperty("AzureBlobEndpoint-"+account, azureStorageRepository.getConnectionString());
+//            System.setProperties(properties);
+
             sessionListenerContainer.fireSessionLoggedIn();
             sessionListenerContainer.fireSessionOpened();
         } catch (Exception e) {

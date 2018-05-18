@@ -24,16 +24,21 @@ import org.slf4j.LoggerFactory;
 public class ConnectionStringFactory {
 
     private static final String CONNECTION_STRING_TEMPLATE = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net";
+    private static final String CONNECTION_STRING_TEMPLATE2 = "DefaultEndpointsProtocol=https;AccountName=%s;SharedAccessSignature=%s;EndpointSuffix=core.windows.net";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionStringFactory.class);
 
     public String create(AuthenticationInfo authenticationInfo) throws AuthenticationException {
 
-        if(authenticationInfo==null) {
+        if (authenticationInfo == null) {
             throw new AuthenticationException("Please provide storage account credentials");
         }
 
-        return String.format(CONNECTION_STRING_TEMPLATE,authenticationInfo.getUserName(),authenticationInfo.getPassword());
+        final String password = authenticationInfo.getPassword();
+        if (password != null && password.contains("sig=")) {
+            return String.format(CONNECTION_STRING_TEMPLATE2, authenticationInfo.getUserName(), password);
+        }
+        return String.format(CONNECTION_STRING_TEMPLATE, authenticationInfo.getUserName(), password);
     }
 
 }
